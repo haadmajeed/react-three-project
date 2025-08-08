@@ -1,12 +1,16 @@
+//  // Floating animation using GSAP
+//    
+
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import gsap from "gsap";
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 function Gsapp() {
   const canvasRef = useRef(null);
-  const speed = 0.01;
+  const speed = 0.009;
   const speedRef = useRef(speed);
   const isPausedRef = useRef(false);
 
@@ -18,7 +22,9 @@ function Gsapp() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x202020);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -28,26 +34,28 @@ function Gsapp() {
     );
     camera.position.set(0, 3, -40);
 
+
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Environment
     const path = "https://threejs.org/examples/textures/cube/MilkyWay/";
+    const format = ".jpg";
     const urls = [
-      path + "dark-s_px.jpg",
-      path + "dark-s_nx.jpg",
-      path + "dark-s_py.jpg",
-      path + "dark-s_ny.jpg",
-      path + "dark-s_pz.jpg",
-      path + "dark-s_nz.jpg",
+      path + "dark-s_px" + format,
+      path + "dark-s_nx" + format,
+      path + "dark-s_py" + format,
+      path + "dark-s_ny" + format,
+      path + "dark-s_pz" + format,
+      path + "dark-s_nz" + format,
     ];
     const cubeTextureLoader = new THREE.CubeTextureLoader();
     const envMap = cubeTextureLoader.load(urls);
+
     scene.environment = envMap;
     scene.background = envMap;
 
-    // Sphere
+
     const sphereGeometry = new THREE.SphereGeometry(4, 64, 64);
     const sphereMaterial = new THREE.MeshStandardMaterial({
       roughness: 1,
@@ -56,11 +64,10 @@ function Gsapp() {
     });
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.rotation.x = Math.PI / 2;
-    sphere.position.y = -6;
+    sphere.position.y = -4;
     sphere.receiveShadow = true;
     scene.add(sphere);
 
-    // Star (Sun)
     const starGeometry = new THREE.SphereGeometry(12, 32, 32);
     const starMaterial = new THREE.MeshStandardMaterial({
       color: "yellow",
@@ -76,11 +83,10 @@ function Gsapp() {
     star.receiveShadow = true;
     scene.add(star);
 
-    // Spotlight
     const spotLight1 = new THREE.SpotLight("yellow", 3);
-    spotLight1.angle = Math.PI / 6;
+    spotLight1.angle = Math.PI / 10;
     spotLight1.power = 12000;
-    spotLight1.distance = 60;
+    spotLight1.distance = 40;
     spotLight1.castShadow = true;
     spotLight1.shadow.bias = -0.001;
     spotLight1.shadow.mapSize.width = 2048;
@@ -90,9 +96,16 @@ function Gsapp() {
     spotLight1.target.position.copy(sphere.position);
 
 
+    RectAreaLightUniformsLib.init();
 
-    // Load Astronaut
+    // Rectangular light below model, shining upward
+    const rectLight = new THREE.RectAreaLight("white", 45, 5, 5);
+    rectLight.position.set(0, -2, 0);
+    rectLight.lookAt(0, 1, 0);
+    scene.add(rectLight);
+
     const loader = new GLTFLoader();
+
     let model;
 
     loader.load(
@@ -106,59 +119,51 @@ function Gsapp() {
             node.castShadow = true;
             node.receiveShadow = true;
 
-            if (node.material && node.material.color) {
-              node.material.color.set("white");
+            if (node.material) {
+              if (node.material.color) {
+                node.material.color.set("white");
+              }
               node.material.metalness = 0.5;
               node.material.roughness = 0.3;
             }
           }
         });
 
-        model.position.set(0, 0, 0);
-       
+        model.position.set(0, 1, 0); 
 
+        model.rotation.set(Math.PI / 4, Math.PI / 2 + Math.PI / 4, 0);
 
+        gsap.fromTo(
+          model.position,
+          { x: -0.6, y: 0.75, z: -0.4 },  
+          {
+            x: 1.6,
+            y: 1.25,
+            z: 1.4,
+            duration: 5,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+          }
+        );
+        gsap.fromTo(
+          model.rotation,
+          { x: Math.PI / 4 - 0.05, y: Math.PI + Math.PI / 4 - 0.1, z: -0.075 },
+          {
+            x:1,
+            y:-3,
+            z: 1.075,
+            duration: 10,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+          }
+        );
 
-        // Set initial 45-degree angle rotation
-        model.rotation.set(THREE.MathUtils.degToRad(45), 0, THREE.MathUtils.degToRad(30));
-
-        // Floating animation using GSAP
-        gsap.to(model.position, {
-          y: "+=0.5",
-          duration: 3,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-
-        gsap.to(model.position, {
-          x: "+=1.2",
-          duration: 4,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-
-        gsap.to(model.position, {
-          z: "+=0.8",
-          duration: 5,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-
-        gsap.to(model.rotation, {
-          x: "+=0.1",
-          y: "+=0.2",
-          z: "+=0.15",
-          duration: 6,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
 
         scene.add(model);
       },
+
       (xhr) => {
         console.log(`Loading model: ${(xhr.loaded / xhr.total) * 100}% loaded`);
       },
@@ -166,56 +171,12 @@ function Gsapp() {
         console.error("Error loading model:", error);
       }
     );
-     const spotLight2 = new THREE.SpotLight("yellow", 3);
-        spotLight2.angle = Math.PI / 6;
-        spotLight2.power = 4000;
-        spotLight2.distance = 60;
-        spotLight2.castShadow = true;
-        spotLight2.shadow.bias = -0.001;
-        spotLight2.shadow.mapSize.width = 2048;
-        spotLight2.shadow.mapSize.height = 2048;
-        spotLight2.target.position.copy(model.position);
-        spotLight2.position(0, -5, 0)
-        scene.add(spotLight2);
-        scene.add(spotLight2.target);
-        const helper = new THREE.SpotLightHelper(spotLight2);
-        scene.add(helper);
-
-    // GSAP Animations
-    gsap.to(star.scale, {
-      x: 1.6,
-      y: 1.6,
-      z: 1.6,
-      duration: 2,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true,
-    });
-
-    gsap.to(sphere.scale, {
-      x: 1.05,
-      y: 1.05,
-      z: 1.05,
-      duration: 2.5,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true,
-    });
-
-    gsap.to(sphere.material.color, {
-      r: 0.6,
-      g: 0.8,
-      b: 1,
-      duration: 4,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-    });
 
     const orbitRadius = 20;
     let angle = 0;
 
-    // Animation Loop
+
+
     const animate = () => {
       requestAnimationFrame(animate);
 
@@ -274,3 +235,4 @@ function Gsapp() {
 }
 
 export default Gsapp;
+
