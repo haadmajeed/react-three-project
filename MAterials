@@ -1,0 +1,261 @@
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import reactLogo from '../assets/react.svg'; // ✅ Make sure this file exists
+import Spotlight from "../lighting/Spotlight";
+
+function Materials() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 15;
+    camera.position.y=2;
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    // Ground Plane
+    const planeGeometry = new THREE.PlaneGeometry(100, 100);
+    const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = -1;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    // Load texture
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(reactLogo);
+
+    // Cube 1 - MeshStandardMaterial with texture
+    const cube1 = new THREE.Mesh(
+      new THREE.BoxGeometry(),
+      new THREE.MeshStandardMaterial({
+        color: "white",
+        roughness: 1,
+        metalness: 1,
+        emissive: new THREE.Color("black"),
+        map: texture,
+        flatShading: true,
+      })
+    );
+    cube1.position.set(-6, 0, 0);
+    scene.add(cube1);
+
+
+
+    const cube3 = new THREE.Mesh(
+      new THREE.BoxGeometry(),
+      new THREE.MeshPhysicalMaterial({
+        color: "white",
+        metalness: 0.9,
+        roughness: 0.3,
+        transmission: 0.95,        // ✅ For glass-like transparency
+        thickness: 1.5,             // ✅ Used with transmission
+        transparent: true,          // ✅ Required for transmission to work
+        opacity: 0.8,               // ✅ Lower opacity for effect
+        ior: 1.45,                  // ✅ Index of Refraction (glass = ~1.45)
+        reflectivity: 0.8,          // ✅ Reflection strength
+        clearcoat: 1.0,             // ✅ Glossy layer on top
+        clearcoatRoughness: 0.1,    // ✅ How rough the clearcoat is
+        specularIntensity: 1.0,     // ✅ Bright highlights
+        specularColor: new THREE.Color(0xffffff), // Optional tweak
+      })
+    );
+    cube3.position.set(-2, 0, 0);
+    cube3.castShadow = true;
+    cube3.receiveShadow = true;
+    scene.add(cube3);
+
+
+    // Cube 4 - MeshPhongMaterial
+    // const cube4 = new THREE.Mesh(
+    //   new THREE.BoxGeometry(),
+    //   new THREE.MeshPhongMaterial({ color: 0xff00ff, shininess: 100 })
+    // );
+    // cube4.position.set(0, 0, 0);
+    // scene.add(cube4);
+
+    const cube5 = new THREE.Mesh(
+      new THREE.BoxGeometry(),
+      new THREE.MeshPhongMaterial({
+        color: 0x00ffff,                 // Base color (a neon cyan)
+        emissive: 0x002222,              // Subtle self-glow
+        specular: 0xffffff,              // Reflection highlights
+        shininess: 100,                  // How shiny the highlights are
+        flatShading: false,              // Set true for a stylized faceted look
+        reflectivity: 1,                 // Reflective strength (used with environment mapping)
+        refractionRatio: 0.98,           // How much light bends through
+        transparent: true,               // Enable opacity
+        opacity: 0.85,                   // Slight transparency
+      })
+    );
+    cube5.position.set(2, 0, 0);
+    cube5.castShadow = true;
+    cube5.receiveShadow = true;
+    scene.add(cube5);
+
+
+
+
+
+
+
+
+    // 1. Load gradient map for toon shading
+    const gradientTexture = textureLoader.load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/gradientMaps/threeTone.jpg'
+    );
+    gradientTexture.minFilter = THREE.NearestFilter;
+    gradientTexture.magFilter = THREE.NearestFilter;
+
+    // 2. Create MeshToonMaterial with strong cartoony color
+    const toonMaterial = new THREE.MeshToonMaterial({
+      color: 0xff5500,       // Bright cartoony orange
+      gradientMap: gradientTexture,
+      emissive: 0x220000,    // Adds a subtle glow
+      flatShading: true,     // Makes the faces more stylized
+    });
+
+    // 3. Create the main toon cube
+    const cube7 = new THREE.Mesh(new THREE.BoxGeometry({ wireframe: true }), toonMaterial);
+    cube7.position.set(6, 0, 0);
+    cube7.castShadow = true;
+    cube7.receiveShadow = true;
+    scene.add(cube7);
+
+    const outlineMaterial = new THREE.MeshBasicMaterial({
+      color: "yellow",
+      side: THREE.BackSide, // render inside faces
+      wireframe: true
+    });
+    const outlineMesh = new THREE.Mesh(new THREE.BoxGeometry(), outlineMaterial);
+    outlineMesh.scale.set(1.1, 1.1, 1.1); // Bigger than cube7 for outline thickness
+    outlineMesh.position.copy(cube7.position);
+    scene.add(outlineMesh);
+
+
+    // Cube 8 - MeshNormalMaterial
+    const cube8 = new THREE.Mesh(
+      new THREE.BoxGeometry(),
+      new THREE.MeshNormalMaterial()
+    );
+    cube8.position.set(0, 4, -10);
+    scene.add(cube8);
+
+    // Lights
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // scene.add(ambientLight);
+
+    // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    // directionalLight.position.set(5, 10, 7.5);
+    // scene.add(directionalLight);
+
+
+
+    const spotLight = new THREE.SpotLight("blue", 3);
+    spotLight.position.set(-6, 0, 5);
+    spotLight.angle = Math.PI / 6;
+    spotLight.power = 1400;
+    spotLight.distance = 20;
+    spotLight.castShadow = true;
+    spotLight.target.position.set(-6, 0, 0);
+    scene.add(spotLight);
+    scene.add(spotLight.target);
+    // const helper = new THREE.SpotLightHelper(spotLight);
+    // scene.add(helper);
+
+    const spotLightCube3 = new THREE.SpotLight("red", 5);
+    spotLightCube3.position.set(-2, 0, 5); // Above cube3
+    spotLightCube3.angle = Math.PI / 6;
+    spotLightCube3.distance = 20;
+    spotLightCube3.power = 1400;
+    spotLightCube3.castShadow = true;
+
+    spotLightCube3.target.position.set(-2, 0, 0); // Point directly at cube3
+    scene.add(spotLightCube3);
+    scene.add(spotLightCube3.target);
+
+
+    const spotLightCube5 = new THREE.SpotLight("purple", 3);
+    spotLightCube5.position.set(2, 0, 5); // Above cube5
+    spotLightCube5.angle = Math.PI / 6;
+    spotLightCube5.distance = 20;
+    spotLightCube5.power = 2400;
+    spotLightCube5.castShadow = true;
+
+    spotLightCube5.target.position.set(2, 0, 0); // Target cube5
+    scene.add(spotLightCube5);
+    scene.add(spotLightCube5.target);
+
+
+    const spotLightCube7 = new THREE.SpotLight("orange", 4);
+    spotLightCube7.position.set(6, 0, 5); // Above cube7
+    spotLightCube7.angle = Math.PI / 6;
+    spotLightCube7.distance = 20;
+    spotLightCube7.power = 2000;
+    spotLightCube7.castShadow = true;
+
+    spotLightCube7.target.position.set(6, 0, 0);
+    scene.add(spotLightCube7);
+    scene.add(spotLightCube7.target);
+
+    // Optional: visual helper
+    // const helper5 = new THREE.SpotLightHelper(spotLightCube5);
+    // scene.add(helper5);
+
+    // Optional: helper to debug spotlight direction
+    // const helper3 = new THREE.SpotLightHelper(spotLightCube3);
+    // scene.add(helper3);
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      cube1.rotation.x += 0.02;
+      cube5.rotation.z += 0.02;
+      cube5.rotation.y += 0.02;
+      cube8.rotation.x += 0.01;
+      cube8.rotation.z += 0.01;
+      cube8.rotation.y += 0.01;
+      cube7.rotation.x += 0.01;
+      cube7.rotation.z += 0.01;
+      cube3.rotation.y += 0.02;
+
+      // Sync outline rotation with cube7
+      outlineMesh.rotation.x = cube7.rotation.x;
+      outlineMesh.rotation.z = cube7.rotation.z;
+
+      controls.update();
+      renderer.render(scene, camera);
+    };
+
+
+    animate();
+
+    return () => {
+      renderer.dispose();
+      controls.dispose();
+    };
+  }, []);
+
+  return (
+    <canvas
+      className="w-[90vw] h-[70vh] rounded-lg border-8 border-white shadow-xl transform hover:scale-105 transition-transform duration-300"
+      ref={canvasRef}
+    />
+  );
+}
+
+export default Materials;
