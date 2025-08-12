@@ -1,0 +1,139 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.jsx'
+import Cube2 from "./App.jsx"
+import Twocubescale from "./Twocubescale.jsx"
+import Orbit from "./Orbit.jsx"
+import Universe from './Universe.jsx'
+import Sphere from './Sphere.jsx'
+import Gui from './GUI.jsx'
+import Guig from './GSAPGUI.jsx'
+import Ambientlight from "./lighting/Ambient.jsx"
+import Color from "./GUI/Color.jsx"
+import Folder from './GUI/Folder.jsx'
+import Dropdown from './GUI/Dropdown.jsx'
+import Light from './lighting/Lights.jsx'
+import Dynamiclight from './lighting/Dynamiclight.jsx'
+import Pointlight from './lighting/Pointlight.jsx'
+import Spotlight from './lighting/Spotlight.jsx'
+import Recarea from './lighting/RectAreaLight.jsx'
+import { HemisphereLight } from 'three'
+import Hemispherelight from './lighting/Hemispherelight.jsx'
+import Finallight from './lighting/Finallight.jsx'
+import Materials from './materials/materialss.jsx'
+import Texture from './textures/Texture.jsx'
+import Mat from './materials/material2.jsx'
+import ModelViewer from './GLTF/Firstmodel.jsx'
+import Aster from './GLTF/Asternaunt.jsx'
+import Anim from './GLTF/ANimateloop.jsx'
+import Gsapp from './GSAP+R3F/GSAP.jsx'
+import Scroll from './GSAP+R3F/Scrolltriger.jsx'
+import Dollyzoom from './GSAP+R3F/Dollyzoom.jsx'
+import ScrollVideo from './GSAP+R3F/Scrollvideo.jsx'
+import Follow from './GSAP+R3F/Model-follow.jsx'
+import Truck from './projects/Truck.jsx'
+import Homepage from './projects/homepage.jsx'
+// import Allmodel from './GLTF/Allmodels.jsx'
+// import Hypercar from './GLTF/Hypercar.jsx'
+import './index.css';
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#121212',
+        color: 'white',
+        fontWeight: 900,
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        display: 'flex',
+        flexDirection: 'column',
+  justifyContent: 'flex-start',  // <-- change from 'center' to 'flex-start'
+        alignItems: 'center',
+        padding: '20px',
+      }}>
+      <Homepage />
+      {/* Sample empty page with extra vertical space */}
+      <div
+        style={{
+          width: '100%',
+          minHeight: '800px',  // increased height for more scroll space
+          backgroundColor: 'transparent',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          gap: '20px',
+        }}
+      >
+        {/* Sample image placeholder */}
+        <img
+          src="https://via.placeholder.com/300x150?text=Sample+Image"
+          alt="Sample Placeholder"
+          style={{
+            opacity: 0.1,       // subtle, faint image
+            maxWidth: '300px',
+            width: '80%',
+            height: 'auto',
+            userSelect: 'none',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Empty space below image */}
+        <div style={{ height: '400px' }}></div>
+      </div>
+
+    <div>hi</div>
+</div>
+      {/* <ScrollVideo/>*/}
+      {/*<div className='scroll-area' >
+      <Dollyzoom />
+    </div>*/}
+
+      {/* <Aster /> */}
+      {/* <Anim />
+        {/* <Delta /> */}
+
+
+      {/* start */}
+      {/* {<Follow />}
+
+    <Scroll />
+    <Gsapp />
+    <ModelViewer />
+    <Mat />
+    <Texture />
+    <Finallight />
+    <Hemispherelight />
+    <Recarea />
+    <Pointlight />
+    <Materials />
+    <Universe />
+    <Orbit />
+    <Twocubescale />
+    <Sphere /> */}
+
+      {/* end */}
+
+      {/* <Hypercar /> */}
+      {/* <Allmodel/> */}
+
+
+
+      {/* ////......... */}
+      {/* <Spotlight/> */}
+      {/* <Dynamiclight/> */}
+      {/* <Light/> */}
+      {/* <Ambientlight /> */}
+
+      {/* <Dropdown /> */}
+      {/* <Folder/> */}
+      {/* <Color/> */}
+      {/* <Guig/> */}
+      {/* <Gui/> */}
+      {/* //....... */}
+
+      {/* <App />
+    <Cube2 /> */}
+
+  </StrictMode >,
+)
