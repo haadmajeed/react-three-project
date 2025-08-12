@@ -1,0 +1,368 @@
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+function Truck() {
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const container = canvas.parentElement;
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x202020);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+        camera.position.set(5, 4, 12);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+
+
+
+
+
+
+        const geometry = new THREE.SphereGeometry(2, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+            color: "white",
+            roughness: 0.7,
+            metalness: 0.1,
+            emissive: 0xffffff,       // white glow color
+            emissiveIntensity: 0.5,   // glow intensity
+        });
+        const moon = new THREE.Mesh(geometry, material);
+        moon.position.set(0, 10, -70); // distant and high
+        scene.add(moon);
+
+        // Animate moon position.y on scroll
+        gsap.to(moon.position, {
+            y: -10,  // moves down as you scroll down
+            ease: "power2.inOut",
+            scrollTrigger: {
+                trigger: document.body,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            },
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+
+        // Headlights
+        const headlightLeft = new THREE.SpotLight("white", 3);
+        headlightLeft.position.set(-0.9, 1, 2);
+        headlightLeft.angle = Math.PI / 8;
+        headlightLeft.penumbra = 1;
+        headlightLeft.decay = 2;
+        headlightLeft.distance = 10;
+        headlightLeft.power = 1000;
+        headlightLeft.castShadow = true;
+        headlightLeft.target.position.set(-0.9, 0, 5);
+        scene.add(headlightLeft);
+        scene.add(headlightLeft.target);
+
+        const headlightRight = new THREE.SpotLight("white", 3);
+        headlightRight.position.set(0.9, 1, 2);
+        headlightRight.angle = Math.PI / 8;
+        headlightRight.penumbra = 1;
+        headlightRight.decay = 2;
+        headlightRight.distance = 10;
+        headlightRight.power = 1000;
+        headlightRight.castShadow = true;
+        headlightRight.target.position.set(0.9, 0, 5);
+        scene.add(headlightRight);
+        scene.add(headlightRight.target);
+
+        // Ground plane
+        const planeGeometry = new THREE.PlaneGeometry(150, 150);
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = 0;
+        plane.receiveShadow = true;
+        scene.add(plane);
+
+        // Road stripe parameters
+        const stripeWidth = 0.2;
+        const stripeLength = 5;
+
+        // Separate gaps
+        const yellowStripeGap = 5;  // gap for yellow stripes
+        const whiteStripeGap = 0;   // no gap for white stripes
+
+        const yellowStripeCount = 10;
+        const whiteStripeCount = Math.floor(100 / stripeLength); // enough to cover ground length continuously
+
+        // Materials
+        const yellowStripeMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00, metalness: 0.5, roughness: 0.2 });
+        const whiteStripeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.5, roughness: 0.2 });
+
+        // Add this before the stripes loop to hold yellow stripes:
+        const yellowStripes = [];
+
+        // Inside your yellow stripes loop:
+        for (let i = 0; i < yellowStripeCount; i++) {
+            const yellowStripeGeometry = new THREE.BoxGeometry(stripeWidth, 0.01, stripeLength);
+            const yellowStripe = new THREE.Mesh(yellowStripeGeometry, yellowStripeMaterial);
+            yellowStripe.position.set(0, 0.01, -40 + i * (stripeLength + yellowStripeGap));
+            yellowStripe.receiveShadow = false;
+            yellowStripe.castShadow = false;
+            scene.add(yellowStripe);
+            yellowStripes.push(yellowStripe);  // Save reference
+        }
+
+
+        // White stripes continuous (left lane)
+        for (let i = 0; i < whiteStripeCount; i++) {
+            const whiteStripeGeometryLeft = new THREE.BoxGeometry(stripeWidth, 0.01, stripeLength);
+            const whiteStripeLeft = new THREE.Mesh(whiteStripeGeometryLeft, whiteStripeMaterial);
+            whiteStripeLeft.position.set(-2, 0.01, -40 + i * (stripeLength + whiteStripeGap));
+            whiteStripeLeft.receiveShadow = false;
+            whiteStripeLeft.castShadow = false;
+            scene.add(whiteStripeLeft);
+        }
+
+        // White stripes continuous (right lane)
+        for (let i = 0; i < whiteStripeCount; i++) {
+            const whiteStripeGeometryRight = new THREE.BoxGeometry(stripeWidth, 0.01, stripeLength);
+            const whiteStripeRight = new THREE.Mesh(whiteStripeGeometryRight, whiteStripeMaterial);
+            whiteStripeRight.position.set(2, 0.01, -40 + i * (stripeLength + whiteStripeGap));
+            whiteStripeRight.receiveShadow = false;
+            whiteStripeRight.castShadow = false;
+            scene.add(whiteStripeRight);
+        }
+
+        // Red tail lights behind truck
+        const tailLightLeft = new THREE.SpotLight(0xff0000, 1.5);
+        tailLightLeft.position.set(-0.7, 0.5, -1.5);
+        tailLightLeft.angle = Math.PI / 6;
+        tailLightLeft.penumbra = 0.5;
+        tailLightLeft.decay = 2;
+        tailLightLeft.power = 1000;
+        tailLightLeft.distance = 5;
+        tailLightLeft.castShadow = false;
+        tailLightLeft.target.position.set(-0.7, 0.5, -5);
+        scene.add(tailLightLeft);
+        scene.add(tailLightLeft.target);
+
+        const tailLightRight = new THREE.SpotLight(0xff0000, 1.5);
+        tailLightRight.position.set(0.7, 0.5, -1.5);
+        tailLightRight.angle = Math.PI / 6;
+        tailLightRight.penumbra = 0.5;
+        tailLightRight.decay = 2;
+        tailLightRight.distance = 5;
+        tailLightRight.power = 1000;
+        tailLightRight.castShadow = false;
+        tailLightRight.target.position.set(0.7, 0.5, -5);
+        scene.add(tailLightRight);
+        scene.add(tailLightRight.target);
+
+        // Load truck model
+        const loader = new GLTFLoader();
+        let model;
+        loader.load(
+            "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF/CesiumMilkTruck.gltf",
+            (gltf) => {
+                model = gltf.scene;
+                model.scale.setScalar(1);
+                model.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                        node.material.color.set("white");
+                    }
+                });
+                model.position.set(0, 0, 0);
+                scene.add(model);
+
+                gsap.to(model.position, {
+                    z: 12,    // Move truck forward on scroll
+                    ease: "power2.inOut",
+                    scrollTrigger: {
+                        trigger: container,      // Use container DOM element
+                        start: "top top",        // when container top hits viewport top
+                        end: "+=300",       // when container bottom hits viewport top (adjust as needed)
+                        scrub: true,
+                    },
+                });
+
+
+            },
+            (xhr) => {
+                console.log(`Loading model: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+            },
+            (error) => {
+                console.error("Error loading model:", error);
+            }
+        );
+        // Headlights move forward, targets move forward as well
+        gsap.to(headlightLeft.position, {
+            z: 15,
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(headlightLeft.target.position, {
+            z: 15,  // slightly ahead to keep light pointing forward
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(headlightRight.position, {
+            z: 15,
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(headlightRight.target.position, {
+            z: 15,
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        // Tail lights move forward similarly
+        gsap.to(tailLightLeft.position, {
+            z: 12, // tail lights move forward less far, adjust as needed
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(tailLightLeft.target.position, {
+            z: 12,  // behind the tail light, to keep light pointing backward
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(tailLightRight.position, {
+            z: 12,
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+        gsap.to(tailLightRight.target.position, {
+            z: 12,
+            ease: "power1.inOut",
+            scrollTrigger: {
+                trigger: container,
+                start: "top top",
+                end: "+=300",
+                scrub: true,
+            }
+        });
+
+
+        // Resize function
+        const onResize = () => {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        };
+
+        onResize();
+
+        // Animation loop
+        const animate = () => {
+            requestAnimationFrame(animate);
+
+            yellowStripes.forEach(stripe => {
+                stripe.position.z += 0.6;
+                if (stripe.position.z > 10) {  // When past the camera (adjust this threshold)
+                    stripe.position.z = -40 - (stripeLength + yellowStripeGap); // reset behind farthest stripe
+                }
+            });
+
+            controls.update();
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        window.addEventListener("resize", onResize);
+
+        return () => {
+            window.removeEventListener("resize", onResize);
+            controls.dispose();
+            renderer.dispose();
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            style={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+            }}
+        />
+    );
+}
+
+export default Truck;
