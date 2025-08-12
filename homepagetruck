@@ -1,0 +1,27 @@
+import React from "react";
+import Truck from "./Truck";
+import "./CSS/Homepage.css";
+
+const Homepage = () => {
+  return (
+    <div className="container">
+      {/* Text on left */}
+      <div className="text-section">
+        <h1 className="heading">
+          Welcome to our <br /> Delivery Company
+        </h1>
+        <p className="description">
+          Quality products for every journey. Experience the power and reliability
+          with our products.
+        </p>
+      </div>
+
+      {/* 3D model on right */}
+      <div className="model-section">
+        <Truck />
+      </div>
+    </div>
+  );
+};
+
+export default Homepage;
